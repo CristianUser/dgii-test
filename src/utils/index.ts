@@ -32,8 +32,9 @@ export async function downloadAndProcessZip(
 }
 
 export async function loadData() {
-  console.info("Started Loading Content");
+  console.info("🔄Started Loading Content");
   const startTime = Date.now();
+  let counter = 0;
   // Example usage:
   try {
     await downloadAndProcessZip(
@@ -42,7 +43,7 @@ export async function loadData() {
         if (line) {
           const [
             rnc,
-            name = '',
+            name = "",
             commercialName,
             activity,
             ,
@@ -51,7 +52,7 @@ export async function loadData() {
             ,
             foundationDate,
             status,
-            regime = '',
+            regime = "",
           ] = line.split("|");
           const parsedData = {
             rnc,
@@ -67,6 +68,7 @@ export async function loadData() {
           };
 
           await redis.set(rnc, JSON.stringify(parsedData));
+          counter++;
         }
       }
     );
@@ -79,7 +81,7 @@ export async function loadData() {
 
   const endTime = Date.now();
   const took = endTime - startTime;
-  console.log("Content Loaded");
+  console.log(`✅Loaded ${counter} entries`);
 
   return {
     status: "ok",
