@@ -32,7 +32,7 @@ export async function downloadAndProcessZip(
 }
 
 export async function loadData() {
-  console.info("🔄Started Loading Content");
+  console.info("🔄 Started Loading Content");
   const startTime = Date.now();
   let counter = 0;
   // Example usage:
@@ -81,7 +81,7 @@ export async function loadData() {
 
   const endTime = Date.now();
   const took = endTime - startTime;
-  console.log(`✅Loaded ${counter} entries in ${took}ms`);
+  console.log(`✅ Loaded ${counter} entries in ${took}ms`);
 
   return {
     status: "ok",
