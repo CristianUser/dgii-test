@@ -1,5 +1,9 @@
 {
   "name": "dgii-test",
+  "packageManager": "pnpm@9.15.2",
+  "engines": {
+    "node": "22"
+  },
   "version": "1.0.0",
   "description": "This project was bootstrapped with Fastify-CLI.",
   "main": "app.ts",
