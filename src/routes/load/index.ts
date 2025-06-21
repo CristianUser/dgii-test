@@ -27,7 +27,7 @@ const example: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
         ] = line.split("|");
         const parsedData = {
           rnc,
-          name,
+          name: name.split(' ').filter(word => word).join(' '),
           commercialName,
           foundationDate,
           activity,
