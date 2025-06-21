@@ -81,7 +81,7 @@ export async function loadData() {
 
   const endTime = Date.now();
   const took = endTime - startTime;
-  console.log(`✅Loaded ${counter} entries`);
+  console.log(`✅Loaded ${counter} entries in ${took}ms`);
 
   return {
     status: "ok",
