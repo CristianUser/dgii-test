@@ -32,41 +32,48 @@ export async function downloadAndProcessZip(
 }
 
 export async function loadData() {
-  console.log("Started Loading Content");
+  console.info("Started Loading Content");
   const startTime = Date.now();
   // Example usage:
-  await downloadAndProcessZip(
-    "https://dgii.gov.do/app/WebApps/Consultas/RNC/DGII_RNC.zip",
-    async (line: string) => {
-      const [
-        rnc,
-        name,
-        commercialName,
-        activity,
-        ,
-        ,
-        ,
-        ,
-        foundationDate,
-        status,
-        regime,
-      ] = line.split("|");
-      const parsedData = {
-        rnc,
-        name: name
-          .split(" ")
-          .filter((word) => word)
-          .join(" "),
-        commercialName,
-        foundationDate,
-        activity,
-        status,
-        regime: regime.replace("\r", ""),
-      };
+  try {
+    await downloadAndProcessZip(
+      "https://dgii.gov.do/app/WebApps/Consultas/RNC/DGII_RNC.zip",
+      async (line: string) => {
+        const [
+          rnc,
+          name,
+          commercialName,
+          activity,
+          ,
+          ,
+          ,
+          ,
+          foundationDate,
+          status,
+          regime,
+        ] = line.split("|");
+        const parsedData = {
+          rnc,
+          name: name
+            .split(" ")
+            .filter((word) => word)
+            .join(" "),
+          commercialName,
+          foundationDate,
+          activity,
+          status,
+          regime: regime.replace("\r", ""),
+        };
 
-      await redis.set(rnc, JSON.stringify(parsedData));
-    }
-  );
+        await redis.set(rnc, JSON.stringify(parsedData));
+      }
+    );
+  } catch (error: any) {
+    console.error(error.message)
+    return {
+      status: "error",
+    };
+  }
 
   const endTime = Date.now();
   const took = endTime - startTime;
