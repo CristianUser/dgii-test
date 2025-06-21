@@ -39,37 +39,39 @@ export async function loadData() {
     await downloadAndProcessZip(
       "https://dgii.gov.do/app/WebApps/Consultas/RNC/DGII_RNC.zip",
       async (line: string) => {
-        const [
-          rnc,
-          name,
-          commercialName,
-          activity,
-          ,
-          ,
-          ,
-          ,
-          foundationDate,
-          status,
-          regime,
-        ] = line.split("|");
-        const parsedData = {
-          rnc,
-          name: name
-            .split(" ")
-            .filter((word) => word)
-            .join(" "),
-          commercialName,
-          foundationDate,
-          activity,
-          status,
-          regime: regime?.replace?.("\r", ""),
-        };
+        if (line) {
+          const [
+            rnc,
+            name,
+            commercialName,
+            activity,
+            ,
+            ,
+            ,
+            ,
+            foundationDate,
+            status,
+            regime,
+          ] = line.split("|");
+          const parsedData = {
+            rnc,
+            name: name
+              .split(" ")
+              .filter((word) => word)
+              .join(" "),
+            commercialName,
+            foundationDate,
+            activity,
+            status,
+            regime: regime?.replace?.("\r", ""),
+          };
 
-        await redis.set(rnc, JSON.stringify(parsedData));
+          await redis.set(rnc, JSON.stringify(parsedData));
+        }
       }
     );
   } catch (error: any) {
-    console.error(error.message)
+    console.error(error.message);
     return {
       status: "error",
     };
