@@ -42,7 +42,7 @@ export async function loadData() {
         if (line) {
           const [
             rnc,
-            name,
+            name = '',
             commercialName,
             activity,
             ,
@@ -51,7 +51,7 @@ export async function loadData() {
             ,
             foundationDate,
             status,
-            regime,
+            regime = '',
           ] = line.split("|");
           const parsedData = {
             rnc,
@@ -63,7 +63,7 @@ export async function loadData() {
             foundationDate,
             activity,
             status,
-            regime: regime?.replace?.("\r", ""),
+            regime: regime.replace("\r", ""),
           };
 
           await redis.set(rnc, JSON.stringify(parsedData));
