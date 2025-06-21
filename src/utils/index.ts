@@ -1,5 +1,8 @@
 import axios from "axios";
+import Redis from "ioredis";
 import JSZip from "jszip";
+
+const redis = new Redis(process.env.REDIS_URL as string);
 
 export async function downloadAndProcessZip(
   url: string,
@@ -26,4 +29,51 @@ export async function downloadAndProcessZip(
   } catch (error) {
     console.error("Error processing the ZIP file:", error);
   }
+}
+
+export async function loadData() {
+  console.log("Started Loading Content");
+  const startTime = Date.now();
+  // Example usage:
+  await downloadAndProcessZip(
+    "https://dgii.gov.do/app/WebApps/Consultas/RNC/DGII_RNC.zip",
+    async (line: string) => {
+      const [
+        rnc,
+        name,
+        commercialName,
+        activity,
+        ,
+        ,
+        ,
+        ,
+        foundationDate,
+        status,
+        regime,
+      ] = line.split("|");
+      const parsedData = {
+        rnc,
+        name: name
+          .split(" ")
+          .filter((word) => word)
+          .join(" "),
+        commercialName,
+        foundationDate,
+        activity,
+        status,
+        regime: regime.replace("\r", ""),
+      };
+
+      await redis.set(rnc, JSON.stringify(parsedData));
+    }
+  );
+
+  const endTime = Date.now();
+  const took = endTime - startTime;
+  console.log("Content Loaded");
+
+  return {
+    status: "ok",
+    took,
+  };
 }
