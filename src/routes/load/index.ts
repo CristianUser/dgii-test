@@ -2,10 +2,7 @@ import { FastifyPluginAsync } from "fastify";
 import { downloadAndProcessZip } from "../../utils";
 import Redis from 'ioredis';
 
-const redis = new Redis({
-  host: 'localhost',    // Redis server host
-  port: 6379,          // Redis server port
-});
+const redis = new Redis(process.env.REDIS_URL as string);
 
 const example: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
   fastify.get("/", async function (request, reply) {
