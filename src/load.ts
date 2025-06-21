@@ -1,3 +1,3 @@
 import { loadData } from "./utils";
 
-loadData()
+loadData().then(() => process.exit(0));
