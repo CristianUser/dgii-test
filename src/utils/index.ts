@@ -62,7 +62,7 @@ export async function loadData() {
           foundationDate,
           activity,
           status,
-          regime: regime.replace("\r", ""),
+          regime: regime?.replace?.("\r", ""),
         };
 
         await redis.set(rnc, JSON.stringify(parsedData));
