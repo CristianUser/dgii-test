@@ -1,0 +1,15 @@
+[phases.setup]
+nixPkgs = ["nodejs_22", "pnpm-9_x"]
+
+[phases.install]
+cmds = ["pnpm install --frozen-lockfile"]
+
+[phases.build]
+cmds = ["pnpm run build:ts"]
+
+[start]
+cmd = "pnpm run start"
+
+[variables]
+NODE_ENV = "production"
+PORT = "3000"
