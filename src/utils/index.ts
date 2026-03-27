@@ -6,7 +6,7 @@ const redis = new Redis(process.env.REDIS_URL as string);
 
 export async function downloadAndProcessZip(
   url: string,
-  processLine: (line: string) => void
+  processLine: (line: string) => void,
 ) {
   try {
     // Step 1: Download the ZIP file from the URL
@@ -16,12 +16,22 @@ export async function downloadAndProcessZip(
     // Step 2: Unzip the file
     const zip = await JSZip.loadAsync(zipData);
 
-    const txtFile = "TMP/DGII_RNC.TXT";
+    // Step 3: Find the .csv file (it's the only one, name varies)
+    const csvFile = Object.keys(zip.files).find((name) =>
+      name.toLowerCase().endsWith(".csv"),
+    );
 
-    // Step 3: Read the .txt file content from the ZIP
-    const fileContent = await zip.files[txtFile].async("string");
+    if (!csvFile) {
+      throw new Error("No CSV file found in the ZIP archive");
+    }
 
-    // Step 4: Process each line of the .txt file
+    // Step 4: Read the .csv file content from the ZIP
+    // Using uint8array and TextDecoder to handle Spanish special characters (ISO-8859-1 / Windows-1252)
+    const uint8Array = await zip.files[csvFile].async("uint8array");
+    const decoder = new TextDecoder("windows-1252");
+    const fileContent = decoder.decode(uint8Array);
+
+    // Step 5: Process each line of the .csv file
     const lines = fileContent.split("\n");
     await Promise.all(lines.map(processLine));
 
@@ -38,29 +48,39 @@ export async function loadData() {
   // Example usage:
   try {
     await downloadAndProcessZip(
-      "https://dgii.gov.do/app/WebApps/Consultas/RNC/DGII_RNC.zip",
+      "https://dgii.gov.do/app/WebApps/Consultas/RNC/RNC_CONTRIBUYENTES.zip",
       async (line: string) => {
-        if (line) {
-          const [
-            rnc,
-            name = "",
-            commercialName,
-            activity,
-            ,
-            ,
-            ,
-            ,
-            foundationDate,
-            status,
-            regime = "",
-          ] = line.split("|");
+        if (line && !line.startsWith("RNC")) {
+          // Skip header
+          // Robust CSV line parser that handles commas inside quotes
+          const values: string[] = [];
+          let current = "";
+          let inQuotes = false;
+
+          for (let i = 0; i < line.length; i++) {
+            const char = line[i];
+            if (char === '"') {
+              inQuotes = !inQuotes;
+            } else if (char === "," && !inQuotes) {
+              values.push(current);
+              current = "";
+            } else {
+              current += char;
+            }
+          }
+          values.push(current);
+
+          if (values.length < 6) return; // Basic validation
+
+          const [rnc, name, activity, foundationDate, status, regime] = values;
+
           const parsedData = {
             rnc,
             name: name
               .split(" ")
               .filter((word) => word)
               .join(" "),
-            commercialName,
+            commercialName: "", // CSV doesn't seem to have this now, or it's same as name
             foundationDate,
             activity,
             status,
@@ -70,7 +90,7 @@ export async function loadData() {
           await redis.set(rnc, JSON.stringify(parsedData));
           counter++;
         }
-      }
+      },
     );
   } catch (error: any) {
     console.error(error.message);
